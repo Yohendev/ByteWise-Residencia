@@ -1,14 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Box, 
   Typography, 
   Button, 
   Paper, 
-  Avatar, 
   IconButton,
-  LinearProgress 
+  LinearProgress,
+  Dialog,
+  DialogContent,
+  TextField
 } from '@mui/material';
 import { 
   Login as LoginIcon, 
@@ -24,9 +27,9 @@ import {
   Add as AddIcon, 
   History as HistoryIcon, 
   Person as PersonIcon,
-  PersonOutlineOutlined as PersonOutlineOutlinedIcon,
-  ExitToApp as ExitToAppIcon 
-  
+  ExitToApp as ExitToAppIcon,
+  CloudUpload as CloudUploadIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 
 const customColors = {
@@ -41,11 +44,8 @@ const customColors = {
   lightBlueButtonText: '#006064',
   progressBlue: '#2196F3', 
   darkButton: '#263238',
-};
-
-const userData = {
-  name: 'Seu Usuário',
-  avatar: 'https://via.placeholder.com/150/808080/FFFFFF?text=SU',
+  modalBlueButton: '#1565C0', 
+  modalGrayButton: '#E0E0E0'
 };
 
 const historicalRecords = [
@@ -69,7 +69,7 @@ const MainContentBox = ({ children }) => (
 
 const StatCard = ({ title, value, icon: Icon, flexBasis }) => (
     <Paper elevation={1} sx={{ 
-        p: 2, 
+        p: 3, 
         flex: `0 0 ${flexBasis}`,
         display: 'flex', 
         alignItems: 'center', 
@@ -86,9 +86,11 @@ const StatCard = ({ title, value, icon: Icon, flexBasis }) => (
     </Paper>
 );
 
-
 export default function PontoPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [openAbsenceModal, setOpenAbsenceModal] = useState(false);
+  const [openAbsenceSuccess, setOpenAbsenceSuccess] = useState(false);
+  const [successModalType, setSuccessModalType] = useState(null); 
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -103,8 +105,200 @@ export default function PontoPage() {
   const capitalizedDay = formattedDay.charAt(0).toUpperCase() + formattedDay.slice(1);
   const progressValue = 66; 
 
+  const handleOpenAbsence = () => setOpenAbsenceModal(true);
+  const handleCloseAbsence = () => setOpenAbsenceModal(false);
+
+  const handleSendAbsenceRequest = () => {
+    setOpenAbsenceModal(false);
+    setOpenAbsenceSuccess(true);
+    
+    setTimeout(() => {
+        setOpenAbsenceSuccess(false);
+    }, 2000);
+  };
+  
+  const handleRegisterEntry = () => setSuccessModalType('ENTRY');
+  const handleRegisterExit = () => setSuccessModalType('EXIT');
+  const handleCloseSuccess = () => setSuccessModalType(null);
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: customColors.mediumGrayBg }}>
+      <style jsx global>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+      
+      <Dialog 
+        open={openAbsenceModal} 
+        onClose={handleCloseAbsence}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2, p: 2 } }}
+      >
+        <DialogContent>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Solicitar Abono de Falta
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'gray', mb: 3 }}>
+                Preencha os dados abaixo para justificar sua ausência
+            </Typography>
+
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Data da Falta</Typography>
+            <TextField 
+                fullWidth 
+                placeholder="dd/mm/aaaa"
+                variant="outlined"
+                sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Motivo da Falta</Typography>
+            <TextField 
+                fullWidth 
+                placeholder="Descreva o motivo da sua ausência..."
+                variant="outlined"
+                multiline
+                rows={3}
+                sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Anexar Documento (PDF)</Typography>
+            <Button
+                fullWidth
+                variant="outlined"
+                component="label"
+                sx={{ 
+                    border: '1px solid #ccc', 
+                    color: 'black', 
+                    textTransform: 'none', 
+                    py: 1.5,
+                    borderRadius: 2,
+                    justifyContent: 'center',
+                    mb: 4
+                }}
+            >
+                <CloudUploadIcon sx={{ mr: 1 }} />
+                Selecionar arquivo PDF
+                <input type="file" hidden accept=".pdf" />
+            </Button>
+            <Typography variant="caption" sx={{ display: 'block', mt: -3, mb: 4, color: 'gray' }}>
+                Anexe atestado médico, declaração ou outro documento comprobatório
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button 
+                    fullWidth 
+                    onClick={handleCloseAbsence}
+                    sx={{ 
+                        bgcolor: customColors.modalGrayButton, 
+                        color: 'black', 
+                        fontWeight: 'bold',
+                        py: 1.5,
+                        borderRadius: 2,
+                        '&:hover': { bgcolor: '#d5d5d5' }
+                    }}
+                >
+                    Cancelar
+                </Button>
+                <Button 
+                    fullWidth 
+                    onClick={handleSendAbsenceRequest} 
+                    sx={{ 
+                        bgcolor: customColors.modalBlueButton, 
+                        color: 'white', 
+                        fontWeight: 'bold',
+                        py: 1.5,
+                        borderRadius: 2,
+                        '&:hover': { bgcolor: '#0D47A1' }
+                    }}
+                >
+                    Enviar Solicitação
+                </Button>
+            </Box>
+        </DialogContent>
+      </Dialog>
+
+      {openAbsenceSuccess && (
+        <Paper 
+            elevation={6}
+            sx={{
+                position: 'fixed',
+                bottom: 32,
+                right: 32,
+                zIndex: 9999,
+                p: 3,
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: 350,
+                animation: 'slideInRight 0.4s ease-out'
+            }}
+        >
+            <CheckCircleIcon sx={{ fontSize: 60, color: customColors.greenButton, mb: 2 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, textAlign: 'center' }}>
+                Solicitação Enviada!
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'gray', mb: 3, textAlign: 'center' }}>
+                Seu pedido de abono foi registrado com sucesso.
+            </Typography>
+
+            <Button 
+                onClick={() => setOpenAbsenceSuccess(false)} 
+                sx={{ 
+                    bgcolor: customColors.modalBlueButton, 
+                    color: 'white', 
+                    fontWeight: 'bold',
+                    py: 1.2,
+                    borderRadius: 1,
+                    width: '100%',
+                    '&:hover': { bgcolor: '#0D47A1' }
+                }}
+            >
+                Concluir
+            </Button>
+        </Paper>
+      )}
+
+      <Dialog 
+        open={!!successModalType} 
+        onClose={handleCloseSuccess}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 4, textAlign: 'center' } }}
+      >
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 0 }}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, lineHeight: 1.2 }}>
+                {successModalType === 'ENTRY' ? 'Entrada registrada' : 'Saída registrada'}
+                <br />
+                com sucesso!
+            </Typography>
+
+            <Typography variant="h6" sx={{ fontWeight: 'normal', mb: 4 }}>
+                Horário da {successModalType === 'ENTRY' ? 'entrada' : 'saída'}: 00:00:00
+            </Typography>
+
+            <Button 
+                onClick={handleCloseSuccess} 
+                sx={{ 
+                    bgcolor: customColors.modalBlueButton, 
+                    color: 'white', 
+                    fontWeight: 'bold',
+                    py: 1.5,
+                    px: 6,
+                    borderRadius: 2,
+                    width: '100%',
+                    maxWidth: '300px',
+                    '&:hover': { bgcolor: '#0D47A1' }
+                }}
+            >
+                Finalizar
+            </Button>
+        </DialogContent>
+      </Dialog>
+
       <Paper elevation={0} sx={{ bgcolor: customColors.cardBg, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${customColors.mediumGrayBg}` }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant="h5" component="div" sx={{ color: customColors.purpleLogo, fontWeight: 'bold', fontFamily: 'serif' }}>
@@ -125,9 +319,7 @@ export default function PontoPage() {
       </Paper>
 
       <MainContentBox>
-        
         <Box sx={{ flex: '2 1 65%', display: 'flex', flexDirection: 'column', gap: 3 }}>
-            
             <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
                 
                 <Paper elevation={1} sx={{ p: 3, flex: '1 1 50%', display: 'flex', flexDirection: 'column', alignItems: 'center', borderRadius: 1 }}>
@@ -139,32 +331,92 @@ export default function PontoPage() {
                         Registre sua entrada, saída e pausas
                     </Typography>
                     
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', mb: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <ScheduleIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
-                            <Typography variant="body2" sx={{ color: customColors.lightGrayText, fontSize: '0.8rem' }}>
-                                {capitalizedDay}, {formattedDate}
-                            </Typography>
-                        </Box>
+                    <Box sx={{ alignSelf: 'flex-start', mb: 3 }}>
+                        <Typography variant="body2" sx={{ color: customColors.lightGrayText, fontSize: '0.8rem' }}>
+                            {capitalizedDay}, {formattedDate}
+                        </Typography>
                         <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 'bold', color: customColors.darkText }}>
                             {formattedTime}
                         </Typography>
                     </Box>
 
-                    <Box sx={{ display: 'flex', width: '100%', gap: 2, mb: 1 }}>
-                        <Button fullWidth variant="contained" sx={{ bgcolor: customColors.greenButton, '&:hover': { bgcolor: '#388E3C' }, py: 1.5, fontSize: '1rem' }} startIcon={<LoginIcon />}>
-                            Registrar entrada
+                    <Box sx={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1fr', 
+                        gap: 2, 
+                        width: '100%', 
+                        mt: 1 
+                    }}>
+                        <Button 
+                            fullWidth 
+                            onClick={handleRegisterEntry}
+                            variant="contained" 
+                            sx={{ 
+                                bgcolor: customColors.greenButton, 
+                                '&:hover': { bgcolor: '#388E3C' }, 
+                                py: 2.5, 
+                                px: 0 
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <LoginIcon sx={{ fontSize: 24, mb: 0.5 }} />
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>REGISTRAR</Typography>
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>ENTRADA</Typography>
+                            </Box>
                         </Button>
-                        <Button fullWidth variant="contained" sx={{ bgcolor: customColors.redButton, '&:hover': { bgcolor: '#D32F2F' }, py: 1.5, fontSize: '1rem' }} startIcon={<LogoutIcon />}>
-                            Registrar saída
+
+                        <Button 
+                            fullWidth 
+                            onClick={handleRegisterExit}
+                            variant="contained" 
+                            sx={{ 
+                                bgcolor: customColors.redButton, 
+                                '&:hover': { bgcolor: '#D32F2F' }, 
+                                py: 2.5, 
+                                px: 0 
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <LogoutIcon sx={{ fontSize: 24, mb: 0.5 }} />
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>REGISTRAR</Typography>
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>SAÍDA</Typography>
+                            </Box>
                         </Button>
-                    </Box>
-                    <Box sx={{ display: 'flex', width: '100%', gap: 2 }}>
-                        <Button fullWidth variant="contained" sx={{ bgcolor: customColors.lightBlueButton, color: customColors.lightBlueButtonText, '&:hover': { bgcolor: '#B3E5FC' }, py: 1.5, fontSize: '0.9rem' }} startIcon={<PauseIcon />}>
-                            Iniciar intervalo
+
+                        <Button 
+                            fullWidth 
+                            variant="contained" 
+                            sx={{ 
+                                bgcolor: customColors.lightBlueButton, 
+                                color: customColors.lightBlueButtonText, 
+                                '&:hover': { bgcolor: '#B3E5FC' }, 
+                                py: 2.5, 
+                                px: 0 
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <PauseIcon sx={{ fontSize: 24, mb: 0.5 }} />
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>INICIAR</Typography>
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>INTERVALO</Typography>
+                            </Box>
                         </Button>
-                        <Button fullWidth variant="contained" sx={{ bgcolor: customColors.lightBlueButton, color: customColors.lightBlueButtonText, '&:hover': { bgcolor: '#B3E5FC' }, py: 1.5, fontSize: '0.9rem' }} startIcon={<PlayArrowIcon />}>
-                            Finalizar intervalo
+                        
+                        <Button 
+                            fullWidth 
+                            variant="contained" 
+                            sx={{ 
+                                bgcolor: customColors.lightBlueButton, 
+                                color: customColors.lightBlueButtonText, 
+                                '&:hover': { bgcolor: '#B3E5FC' }, 
+                                py: 2.5, 
+                                px: 0 
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <PlayArrowIcon sx={{ fontSize: 24, mb: 0.5 }} />
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>FINALIZAR</Typography>
+                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>INTERVALO</Typography>
+                            </Box>
                         </Button>
                     </Box>
                 </Paper>
@@ -176,8 +428,14 @@ export default function PontoPage() {
                             <MapOutlinedIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
                             <Typography variant="body2" sx={{ fontWeight: 'medium', color: customColors.darkText }}>Minha localização</Typography>
                         </Box>
-                        <Box sx={{ height: 120, bgcolor: '#E0E0E0', borderRadius: 1, overflow: 'hidden', mb: 1 }}>
-                            <img src="https://via.placeholder.com/300x120?text=Mapa+Localizacao" alt="Mapa de localização" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+                        <Box sx={{ height: 120, bgcolor: '#E0E0E0', borderRadius: 1, overflow: 'hidden', mb: 1, position: 'relative' }}>
+                             <Image 
+                                src="https://via.placeholder.com/300x120?text=Mapa+Localizacao" 
+                                alt="Mapa de localização" 
+                                fill
+                                style={{ objectFit: 'cover' }}
+                                unoptimized
+                            />
                         </Box>
                         <Typography variant="caption" sx={{ color: customColors.lightGrayText, textAlign: 'center' }}>
                             Clique aqui para ver a localização no Google Maps
@@ -227,6 +485,7 @@ export default function PontoPage() {
                         Solicite abono de falta enviando sua justificativa
                     </Typography>
                     <Button 
+                        onClick={handleOpenAbsence}
                         variant="contained" 
                         sx={{ bgcolor: customColors.darkButton, '&:hover': { bgcolor: '#37474F' }, mt: 'auto', py: 1.2, px: 2, fontSize: '0.9rem' }}
                         startIcon={<AddIcon />}
@@ -280,7 +539,6 @@ export default function PontoPage() {
                 </Paper>
             </Box>
         </Box>
-
 
         <Box sx={{ flex: '1 1 35%', display: 'flex', flexDirection: 'column', gap: 3 }}>
             
