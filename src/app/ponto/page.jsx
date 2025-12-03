@@ -8,6 +8,7 @@ import {
   Button, 
   Paper, 
   IconButton,
+  Avatar,
   LinearProgress,
   Dialog,
   DialogContent,
@@ -16,8 +17,7 @@ import {
 import { 
   Login as LoginIcon, 
   Logout as LogoutIcon, 
-  Pause as PauseIcon, 
-  PlayArrow as PlayArrowIcon,
+  Restaurant as RestaurantIcon,
   Schedule as ScheduleIcon, 
   MapOutlined as MapOutlinedIcon, 
   WorkOutline as WorkOutlineIcon, 
@@ -29,7 +29,10 @@ import {
   Person as PersonIcon,
   ExitToApp as ExitToAppIcon,
   CloudUpload as CloudUploadIcon,
-  CheckCircle as CheckCircleIcon
+  CheckCircle as CheckCircleIcon,
+  CalendarToday as CalendarTodayIcon,
+  TrendingUp as TrendingUpIcon,
+  NotificationsNone as NotificationsNoneIcon
 } from '@mui/icons-material';
 
 const customColors = {
@@ -49,7 +52,7 @@ const customColors = {
 };
 
 const historicalRecords = [
-  { date: '10/11/2025', day: 'Segunda-feira', entry: '07:55:12', exit: '--:--', total: 'Em andamento', status: 'Em andamento' },
+  { date: '10/11/2025', day: 'Segunda-feira', entry: '07:55:12', exit: '--:--', total: '--:--', status: 'Em andamento' },
   { date: '07/11/2025', day: 'Sexta-feira', entry: '07:50:10', exit: '16:00:12', total: '08:10:02', status: 'Concluído' },
   { date: '06/11/2025', day: 'Quinta-feira', entry: '07:59:54', exit: '16:03:20', total: '08:03:26', status: 'Concluído' },
 ];
@@ -67,43 +70,48 @@ const MainContentBox = ({ children }) => (
     </Box>
 );
 
-const StatCard = ({ title, value, icon: Icon, flexBasis }) => (
+const StatCard = ({ title, value, icon: Icon, rightIcon: RightIcon, flexBasis }) => (
     <Paper elevation={1} sx={{ 
-        p: 3, 
+        p: 2, 
         flex: `0 0 ${flexBasis}`,
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        borderRadius: 1 
+        borderRadius: 1,
+        width: '100%',
+        minHeight: 40
     }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Icon sx={{ fontSize: 32, color: customColors.lightGrayText, mr: 1 }} />
+            <Icon sx={{ fontSize: 28, color: customColors.lightGrayText, mr: 1 }} />
             <Box>
                 <Typography variant="body2" sx={{ color: customColors.lightGrayText }}>{title}</Typography>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: customColors.darkText }}>{value}</Typography>
             </Box>
         </Box>
+        {RightIcon && <RightIcon sx={{ fontSize: 18, color: customColors.lightGrayText }} />}
     </Paper>
 );
 
 export default function PontoPage() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(null);
   const [openAbsenceModal, setOpenAbsenceModal] = useState(false);
   const [openAbsenceSuccess, setOpenAbsenceSuccess] = useState(false);
   const [successModalType, setSuccessModalType] = useState(null); 
 
   useEffect(() => {
+    setCurrentTime(new Date());
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000); 
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const formattedTime = currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const formattedDate = currentTime.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const formattedDay = currentTime.toLocaleDateString('pt-BR', { weekday: 'long' });
-  const capitalizedDay = formattedDay.charAt(0).toUpperCase() + formattedDay.slice(1);
-  const progressValue = 66; 
+  const formattedTime = currentTime ? currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--';
+  const fullDateLabel = currentTime ? (() => {
+    const s = currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  })() : '';
+  const progressValue = 69; 
 
   const handleOpenAbsence = () => setOpenAbsenceModal(true);
   const handleCloseAbsence = () => setOpenAbsenceModal(false);
@@ -301,14 +309,15 @@ export default function PontoPage() {
 
       <Paper elevation={0} sx={{ bgcolor: customColors.cardBg, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${customColors.mediumGrayBg}` }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="h5" component="div" sx={{ color: customColors.purpleLogo, fontWeight: 'bold', fontFamily: 'serif' }}>
+          <Typography variant="h4" component="div" sx={{ color: customColors.purpleLogo, fontWeight: 'bold', fontFamily: 'serif' }}>
             B
           </Typography>
-          <Typography variant="h6" sx={{ color: customColors.purpleLogo, letterSpacing: 1, fontWeight: 'bold', fontFamily: 'serif', ml: 1 }}>
-            BYTE WISE
+          <Typography variant="h5" sx={{ color: customColors.purpleLogo, letterSpacing: 1, fontWeight: 'bold', fontFamily: 'serif', ml: 0.5}}>
+            YTE WISE
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ width: 36, height: 36 }} src="/next.svg" alt="Perfil" />
             <Typography variant="body1" sx={{ color: customColors.lightGrayText, mr: 1, display: { xs: 'none', md: 'block' } }}>Sair</Typography>
             <Link href="/login" passHref>
                 <IconButton sx={{ bgcolor: customColors.darkButton, '&:hover': { bgcolor: '#37474F' }, p: 0.5, borderRadius: 1 }}>
@@ -332,10 +341,10 @@ export default function PontoPage() {
                     </Typography>
                     
                     <Box sx={{ alignSelf: 'flex-start', mb: 3 }}>
-                        <Typography variant="body2" sx={{ color: customColors.lightGrayText, fontSize: '0.8rem' }}>
-                            {capitalizedDay}, {formattedDate}
+                        <Typography variant="body2" suppressHydrationWarning sx={{ color: customColors.lightGrayText, fontSize: '0.85rem' }}>
+                            {fullDateLabel}
                         </Typography>
-                        <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 'bold', color: customColors.darkText }}>
+                        <Typography variant="h2" suppressHydrationWarning sx={{ fontFamily: 'monospace', fontWeight: 'bold', color: customColors.darkText, fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
                             {formattedTime}
                         </Typography>
                     </Box>
@@ -355,14 +364,13 @@ export default function PontoPage() {
                                 bgcolor: customColors.greenButton, 
                                 '&:hover': { bgcolor: '#388E3C' }, 
                                 py: 2.5, 
-                                px: 0 
+                                px: 2,
+                                textTransform: 'none',
+                                fontWeight: 'bold'
                             }}
+                            startIcon={<LoginIcon sx={{ fontSize: 24 }} />}
                         >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <LoginIcon sx={{ fontSize: 24, mb: 0.5 }} />
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>REGISTRAR</Typography>
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>ENTRADA</Typography>
-                            </Box>
+                            Registrar entrada
                         </Button>
 
                         <Button 
@@ -373,14 +381,13 @@ export default function PontoPage() {
                                 bgcolor: customColors.redButton, 
                                 '&:hover': { bgcolor: '#D32F2F' }, 
                                 py: 2.5, 
-                                px: 0 
+                                px: 2,
+                                textTransform: 'none',
+                                fontWeight: 'bold'
                             }}
+                            startIcon={<LogoutIcon sx={{ fontSize: 24 }} />}
                         >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <LogoutIcon sx={{ fontSize: 24, mb: 0.5 }} />
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>REGISTRAR</Typography>
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>SAÍDA</Typography>
-                            </Box>
+                            Registrar saída
                         </Button>
 
                         <Button 
@@ -391,14 +398,13 @@ export default function PontoPage() {
                                 color: customColors.lightBlueButtonText, 
                                 '&:hover': { bgcolor: '#B3E5FC' }, 
                                 py: 2.5, 
-                                px: 0 
+                                px: 2,
+                                textTransform: 'none',
+                                fontWeight: 'bold'
                             }}
+                            startIcon={<RestaurantIcon sx={{ fontSize: 24 }} />}
                         >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <PauseIcon sx={{ fontSize: 24, mb: 0.5 }} />
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>INICIAR</Typography>
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>INTERVALO</Typography>
-                            </Box>
+                            Iniciar intervalo
                         </Button>
                         
                         <Button 
@@ -409,21 +415,20 @@ export default function PontoPage() {
                                 color: customColors.lightBlueButtonText, 
                                 '&:hover': { bgcolor: '#B3E5FC' }, 
                                 py: 2.5, 
-                                px: 0 
+                                px: 2,
+                                textTransform: 'none',
+                                fontWeight: 'bold'
                             }}
+                            startIcon={<RestaurantIcon sx={{ fontSize: 24 }} />}
                         >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <PlayArrowIcon sx={{ fontSize: 24, mb: 0.5 }} />
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>FINALIZAR</Typography>
-                                <Typography variant="caption" sx={{ fontSize: '0.9rem', fontWeight: 'bold', lineHeight: 1 }}>INTERVALO</Typography>
-                            </Box>
+                            Finalizar intervalo
                         </Button>
                     </Box>
                 </Paper>
 
                 <Box sx={{ flex: '1 1 50%', display: 'flex', flexDirection: 'column', gap: 3 }}>
                     
-                    <Paper elevation={1} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 'auto', borderRadius: 1 }}>
+                    <Paper elevation={1} sx={{ p: 2, display: 'flex', flexDirection: 'column', borderRadius: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <MapOutlinedIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
                             <Typography variant="body2" sx={{ fontWeight: 'medium', color: customColors.darkText }}>Minha localização</Typography>
@@ -438,7 +443,7 @@ export default function PontoPage() {
                             />
                         </Box>
                         <Typography variant="caption" sx={{ color: customColors.lightGrayText, textAlign: 'center' }}>
-                            Clique aqui para ver a localização no Google Maps
+                            Clique para expandir o mapa
                         </Typography>
                     </Paper>
 
@@ -476,7 +481,7 @@ export default function PontoPage() {
 
             <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' }, flexGrow: 1 }}>
                 
-                <Paper elevation={1} sx={{ p: 3, flex: '1 1 35%', display: 'flex', flexDirection: 'column', borderRadius: 1 }}>
+                <Paper elevation={1} sx={{ p: 3, flex: '1 1 0%', display: 'flex', flexDirection: 'column', borderRadius: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <DescriptionOutlinedIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
                         <Typography variant="body2" sx={{ fontWeight: 'medium', color: customColors.darkText }}>Justificativa de Falta</Typography>
@@ -495,9 +500,14 @@ export default function PontoPage() {
                 </Paper>
                 
                 <Paper elevation={1} sx={{ p: 3, flex: '2 1 65%', display: 'flex', flexDirection: 'column', borderRadius: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <HistoryIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 'medium', color: customColors.darkText }}>Histórico de Registro</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <HistoryIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 'medium', color: customColors.darkText }}>Histórico de Registro</Typography>
+                        </Box>
+                        <Button variant="outlined" size="small" sx={{ textTransform: 'none' }} startIcon={<AssessmentOutlinedIcon sx={{ fontSize: 18 }} />}>
+                            Visualizar histórico completo
+                        </Button>
                     </Box>
                     <Typography variant="caption" sx={{ color: customColors.lightGrayText, mb: 3 }}>
                         Seus últimos registros de ponto
@@ -525,7 +535,7 @@ export default function PontoPage() {
                                         <td className="px-3 py-2 whitespace-nowrap text-sm">
                                             <span 
                                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    ${record.status === 'Concluído' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
+                                                    ${record.status === 'Concluído' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'}`
                                                 }
                                             >
                                                 {record.status}
@@ -544,18 +554,21 @@ export default function PontoPage() {
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 
-                <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'row', sm: 'row' }, flexWrap: 'wrap' }}>
-                    <StatCard title="Horas Semanais" value="21:47:00" icon={ScheduleIcon} flexBasis="30%" />
-                    <StatCard title="Horas Mensais" value="21:47:00" icon={ScheduleIcon} flexBasis="30%" />
-                    <StatCard title="Média Diárias" value="08:06:00" icon={ScheduleIcon} flexBasis="30%" />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <StatCard title="Horas Semanais" value="21:47:00" icon={ScheduleIcon} rightIcon={AccessTimeIcon} flexBasis="50%" />
+                    <StatCard title="Horas Mensais" value="21:47:00" icon={CalendarTodayIcon} rightIcon={CalendarTodayIcon} flexBasis="50%" />
+                    <StatCard title="Média Diárias" value="08:06:00" icon={TrendingUpIcon} rightIcon={TrendingUpIcon} flexBasis="50%" />
                 </Box>
                 
-                <Paper elevation={1} sx={{ p: 3, borderRadius: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <PersonIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 'medium', color: customColors.darkText }}>Dias Presentes</Typography>
+                <Paper elevation={1} sx={{ p: 5, borderRadius: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start',mt: 25, width: '100%', minHeight: 90 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <PersonIcon sx={{ mr: 1, color: customColors.lightGrayText, fontSize: 18 }} />
+                            <Typography variant="body2" sx={{ fontWeight: 'small', color: customColors.darkText }}>Dias Presentes</Typography>
+                        </Box>
+                        <NotificationsNoneIcon sx={{ color: customColors.lightGrayText, fontSize: 18 }} />
                     </Box>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: customColors.darkText, mt: 1 }}>3 Dias</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: customColors.darkText, mt: 0 }}>3 Dias</Typography>
                 </Paper>
             </Box>
         </Box>
